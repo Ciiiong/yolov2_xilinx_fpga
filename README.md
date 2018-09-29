@@ -11,16 +11,19 @@ The overall architecture of the accelerator is shown below:
 
 Similar to [4,5,8], the accelerator has two AXI4 master interfaces and one AXI4-Lite slave interface. AXI-Lite slave interface is responsible for reading and writing control, data and status register sets. The input feature maps and weights are read concurrently by two master interfaces, and the output feature maps are written back simultaneously through write channel.   
 The Data Scatter module is designed to generate the corresponding write address and distribute the data read from the DRAM to the on-chip buffers. The Data Gather module is designed to generate the DRAM write-back address and write the data in the output buffer back to the DRAM. The other red modules are responsible for the processing of the convolutional layer (Conv and Leaky ReLU), the maximum pooling layer (Pool) and the reorg layer (Reorg).  
+1292/5000
+与[4,5,8]类似，加速器有两个AXI4主接口和一个AXI4-Lite从接口。 AXI-Lite从接口负责读写控制，数据和状态寄存器组。输入要素图和权重由两个主接口同时读取，输出要素图通过写入通道同时写回。Data Scatter模块用于生成相应的写地址，并将从DRAM读取的数据分配到片上缓冲区。 Data Gather模块用于生成DRAM回写地址，并将输出缓冲区中的数据写回DRAM。其他红色模块负责处理卷积层（Conv和Leaky ReLU），最大池层（Pool）和reorg层（Reorg）。
 
 ## Weight Arrangement   
 The effective FPGA bandwidth goes up with the increase of burst length and finally flattens out above some burst length threshold[7]. The data tiling technique usually results in a discontinuous DRAM access for the row-major data layout in DRAM. To reduce the number of memory accesses and increase the effective memory bandwidth, we arrange the kernel weights for an entire tile to a continuous block to ensure a high utilization of the bandwidth of external memory [3].  
-
+有效的FPGA带宽随着突发长度的增加而上升，最终在一些突发长度阈值之上变平[7]。数据切片技术通常导致DRAM中行主数据布局的不连续DRAM访问。为了减少内存访问次数并增加有效内存带宽，我们将整个磁贴的内核权重排列为连续块，以确保高效利用外部存储器的带宽[3]。
 ## Parallel Convolution Engine  
 The acceleration strategy of convolutional layer is similar to [5][6], which utilizes input and output parallelism to accelerate the computation. By designing multiple parallel multiplication units and add trees to achieve input parallelism (Tn parallelism) and output parallelism (Tm parallelism) in convolution calculation. The Tm*Tn multiplication units are calculated in parallel. The add trees of Log2 (Tn) depth are accumulated by pipeline, and generate the partial sums.  
-
+并行卷积引擎
+卷积层的加速策略类似于[5] [6]，它利用输入和输出并行来加速计算。 通过设计多个并行乘法单元并添加树来实现卷积计算中的输入并行性（Tn并行性）和输出并行性（Tm并行性）。 Tm * Tn乘法单元是并行计算的。 Log2（Tn）深度的添加树由管道累积，并生成部分和。
 ## Ping-Pong operation  
 Similar to [8], the design implements ping-pong buffers to overlap the delay of reading input feature maps and weights, writing output feature maps and calculation, which greatly improves the dynamic utilization of the computing engines.  
-
+与[8]类似，该设计实现了乒乓缓冲区，以重叠读取输入要素图和权重的延迟，编写输出要素图和计算，这极大地提高了计算引擎的动态利用率。
 # Evaulate  
 Experiments show that floating point addition in HLS requires three DSP resources, floating point multiplication requires two DSPs; fixed point 16-bit multiplication requires one DSP, and fixed-point 16-bit addition can be implemented only using LUT. After placing and routing, resource consumptions of fixed-16 (Tn=2, Tm=32, Tr=26, Tc=26) are shown as follows:     
 
